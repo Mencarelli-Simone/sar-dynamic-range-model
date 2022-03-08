@@ -332,13 +332,13 @@ class UniformAperture(Aperture):
 ### TEST ####
 if __name__ == "__main__":
     uniap = UniformAperture(4,.8)
-    theta = np.linspace(0, np.pi / 32, 100)
+    theta = np.linspace(0, np.pi / 2, 100)
     phi = np.linspace(0, np.pi / 2, 50)
     # method 1
     #g1 = uniap.gain_pattern(theta, phi)# interpolation= "trapz")
     # method 2
     Theta, Phi = np.meshgrid(theta, phi)
-    g2 = uniap.mesh_gain_pattern(Theta, Phi)
+    g2 = uniap.mesh_gain_pattern(Theta, Phi) # it underestimates, but just a bit
 
     # theoretical
     gt = uniap.mesh_gain_pattern_theor(Theta, Phi)
@@ -365,7 +365,7 @@ if __name__ == "__main__":
     ax.set_ylabel("$\\theta\  sin \phi$")
     # DIFFERENCE
     fig, ax = plt.subplots(1)
-    c = ax.pcolormesh(uniap.Theta * cos(uniap.Phi), uniap.Theta * sin(uniap.Phi), g2/(np.abs(g2-gt)),
+    c = ax.pcolormesh(uniap.Theta * cos(uniap.Phi), uniap.Theta * sin(uniap.Phi), ((g2-gt)/g2),
                       cmap=plt.get_cmap('hot'))
     fig.colorbar(c)
     ax.set_xlabel("$\\theta\  cos \phi$")
