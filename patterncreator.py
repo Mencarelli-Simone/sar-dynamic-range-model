@@ -12,8 +12,8 @@ filename = destination_folder+filename
 # %%
 # PATTERN GENERATION
 uniap = UniformAperture(4, .8)
-theta = np.linspace(0, np.pi / 16, 300)
-phi = np.linspace(0, np.pi * 2, 200)
+theta = np.linspace(0, np.pi / 16, 383)
+phi = np.linspace(0, 2 * np.pi * (1- 1/ 251), 251)
 print('computing')
 Theta, Phi = np.meshgrid(theta, phi)
 g2 = uniap.mesh_gain_pattern(Theta, Phi).astype("complex")  # it underestimates, but just a bit

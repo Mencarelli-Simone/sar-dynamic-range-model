@@ -4,8 +4,9 @@
 # simulate the snr of a radar range line given the antenna pattern main lobe non-squint case
 # Note:
 # This program uses modules copied from the project radar-model as last commit at 22/02/2022
-# Version: 2
+# Version: 3
 # Version Notes: This version of the script finds the sample for azimuth integration uniformly spaced in doppler frequency
+# only meaningful plots are produced in the case of pattern equalization
 
 # %%
 import numpy as np
@@ -254,31 +255,6 @@ sin_eta = - y/(np.sqrt(y**2 + radarGeo.S_0[2]**2))
 # The range at each ground range point is
 range_ = np.sqrt(y**2 + radarGeo.S_0[2]**2)
 
-# the azimuth 3-dB resolution is assumed to be
-delta_x = antenna_L / 2
-
-# Then the Signal to Noise Ratio at each ground range point is:
-SNR =    w_range**2 *\
-         powav * wave_l**3 * max_gain**2 * sigma * c_light * radarGeo.abs_v * delta_x /\
-         (32 * np.pi**3 * range_**3 * f_noise * k_boltz * T_a * B_noise * sin_eta * doppler_bandwidth)
-
-# And the noise equivalent sigma zero:
-NESZ = 1 / SNR
-
-# %% plotting SNR
-fig, ax  = plt.subplots(1)
-ax.plot(y, 10*np.log10(SNR))
-ax.set_xlabel(' fe <-- ground range --> ne')
-ax.set_ylabel('SNR dB ')
-ax.set_ylim(bottom=-5, top=15)
-
-# %% plotting NESZ
-fig, ax  = plt.subplots(1)
-ax.plot(y, 10*np.log10(NESZ))
-ax.set_xlabel(' fe <-- ground range --> ne')
-ax.set_ylabel('NESZ dB ')
-ax.set_ylim(top=-3, bottom=-15)
-
 
 # %%
 # 6 - Considering instead the resolution invariant formulation
@@ -302,12 +278,6 @@ SNR_norm = powav * wave_l**3 * max_gain**2 * sigma * c_light * radarGeo.abs_v**2
 # and the noise equivalent sigma zero
 NESZ_norm = 1 / SNR_norm
 
-# %% plotting SNR
-fig, ax  = plt.subplots(1)
-ax.plot(y, 10*np.log10(SNR_norm))
-ax.set_xlabel(' fe <-- ground range --> ne')
-ax.set_ylabel('SNR_norm dB ')
-ax.set_ylim(bottom=-5, top=15)
 
 # %% plotting NESZ
 fig, ax  = plt.subplots(1)
@@ -316,48 +286,25 @@ ax.set_xlabel(' fe <-- ground range --> ne')
 ax.set_ylabel('NESZ_norm dB ')
 ax.set_ylim(top=-3, bottom=-15)
 
-# %%
-# 7 - Parametric swipe over the doppler bandwidth
-# percentage ove the nominal 3-dB beamwidth doppler bandwidth
-param_swipe = np.linspace(.7, 1.5, 9)
-# empty lists for the swipe
-snr_list = 0
-nesz_list = 0
-snr_list = []
-nesz_list = []
-
-for pp in param_swipe:
-    # the modified doppler bandwidth is
-    doppler_bandwidth_swipe = pp * doppler_bandwidth
-    # The Doppler mask is:
-    D_m_swipe = np.where(np.abs(D) <= doppler_bandwidth_swipe / 2, 1, 0)
-
-    # the integral then becomes
-    w_range_norm_s = np.zeros_like(y)
-    for rr in range(len(y)):
-        idxs = np.argwhere(D_m_swipe[rr, :] > 0)
-        a_min, a_max = int(idxs[0]), int(idxs[-1] + 1)
-        # the minus sign is required because the doppler axis is ordered as decreasing
-        w_range_norm_s[rr] = integrate.simps(I_norm[rr, a_min:a_max], D[rr, a_min:a_max], even='avg')
-
-   # w_range_norm_s = -integrate.simps(1000*I_norm*D_m_swipe, D, axis=1).reshape(len(y),1)
-
-    # the new SNR equation is
-    SNR_norm_s =  powav * wave_l ** 3 * max_gain ** 2 * sigma * c_light * radarGeo.abs_v ** 2 * doppler_bandwidth_swipe / \
-                  (32 * np.pi ** 3 * range_ ** 3 * f_noise * k_boltz * T_a * B_noise * sin_eta * w_range_norm_s)
-
-    # and the noise equivalent sigma zero
-    NESZ_norm_s = 1 / SNR_norm_s
-
-    # saving the results
-    snr_list.append(SNR_norm_s)
-    nesz_list.append(NESZ_norm_s)
-
-# %% plotting NESZ swipe
+# %% plotting SNR
 fig, ax  = plt.subplots(1)
-for ii in range(len(param_swipe)):
-    ax.plot(y, 10 * np.log10(nesz_list[ii]), label=str('%.1f' % param_swipe[ii])+"BW")
+ax.plot(y, 10*np.log10(SNR_norm))
 ax.set_xlabel(' fe <-- ground range --> ne')
-ax.set_ylabel('NESZ_norm dB ')
-ax.set_ylim(top=-3, bottom=-15)
-ax.legend()
+ax.set_ylabel('SNR_norm dB ')
+ax.set_ylim(bottom=-5, top=15)
+
+
+#%% LOAD FORM DISK TO COMPARE TO SIMULATION
+import pickle as pk
+path = "C:/Users/smen851/PycharmProjects/radar-model/SNR_simulation/"
+name_snr = 'snr.pk'
+name_ax = 'gnd_rng.pk'
+with open(path+name_snr, 'rb') as handle:
+    SNR_sim = pk.load(handle)
+    handle.close()
+with open(path+name_ax, 'rb') as handle:
+    GND_rng_sim = pk.load(handle)
+    handle.close()
+
+# overimpose to snr plot to compare
+ax.plot(GND_rng_sim, 10 * np.log10(SNR_sim))
