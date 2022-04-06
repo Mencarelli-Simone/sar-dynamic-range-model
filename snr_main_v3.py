@@ -296,15 +296,26 @@ ax.set_ylim(bottom=-5, top=15)
 
 #%% LOAD FORM DISK TO COMPARE TO SIMULATION
 import pickle as pk
-path = "C:/Users/smen851/PycharmProjects/radar-model/SNR_simulation/"
+path = "D:/Pycharm-Projects/radar-model/SNR_simulation/"
 name_snr = 'snr.pk'
 name_ax = 'gnd_rng.pk'
 with open(path+name_snr, 'rb') as handle:
     SNR_sim = pk.load(handle)
     handle.close()
+
+name_snr = 'snr_noise.pk'
+with open(path + name_snr, 'rb') as handle:
+    SNR_sim_no = pk.load(handle)
+    handle.close()
+
 with open(path+name_ax, 'rb') as handle:
     GND_rng_sim = pk.load(handle)
     handle.close()
 
 # overimpose to snr plot to compare
 ax.plot(GND_rng_sim, 10 * np.log10(SNR_sim))
+ax.plot(GND_rng_sim, 10 * np.log10(SNR_sim_no))
+
+#%% ideal snr
+SNR_Jan = powav * wave_l**3 * max_gain**2 * c_light *1 /(256 * np.pi**3 *range_**3 * f_noise*k_boltz*T_a*B_noise * sin_eta * radarGeo.abs_v)
+ax.plot(y, 10*np.log10(SNR_Jan))

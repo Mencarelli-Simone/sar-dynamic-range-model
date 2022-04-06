@@ -5,7 +5,7 @@ from farField import UniformAperture
 import numpy as np
 import pickle as pk
 
-destination_folder = "C:/Users/smen851/PycharmProjects/radar-model/Antenna_Pattern/"
+destination_folder = "D:/Pycharm-Projects/radar-model/Antenna_Pattern/"
 filename = "gain_pattern.pk"
 filename = destination_folder+filename
 
