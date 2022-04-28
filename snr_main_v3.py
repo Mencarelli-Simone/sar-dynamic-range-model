@@ -262,6 +262,9 @@ range_ = np.sqrt(y**2 + radarGeo.S_0[2]**2)
 # we need to consider a different integrand
 I_norm = (4 * radarGeo.abs_v**2 - D**2 * wave_l**2)**(3 / 2) / \
          (ground_illumination**2)
+# test, uniform pattern OK passed, with the following the integral coincides with the theoretical snr equ
+#I_norm = (4 * radarGeo.abs_v**2 - D**2 * wave_l**2)**(3 / 2) / \
+#         (np.ones_like(ground_illumination)**2)
 
 # the integral then becomes
 w_range_norm = np.zeros_like(y)
