@@ -240,6 +240,12 @@ class UniformAperture(Aperture):
         self.set_uniform_mesh_resolution(.1 * self.c / self.freq, .1 * self.c / self.freq)
         self.tanEField += self.e_amplitude * np.ones_like(self.tanEField)
 
+    def set_length(self, length):
+        self.__init__(length, self.W, self.freq)
+
+    def set_width(self, width):
+        self.__init__(self.L, width, self.freq)
+
     def gain_pattern(self, theta: np.ndarray, phi: np.ndarray, interpolation="simpson", polarization = "y"):
         """
         calculate the gain for a hiuygenes source
@@ -319,7 +325,7 @@ class UniformAperture(Aperture):
 
     def max_gain(self):
         """
-        :return: the peak gain of pattern
+        :return: the peak (broadside) gain of pattern
         """
         t = np.zeros((1,1))
         p = np.zeros((1,1))

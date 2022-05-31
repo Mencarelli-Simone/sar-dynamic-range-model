@@ -7,7 +7,6 @@ import numpy as np
 from numba import jit, prange
 from numpy import cos, sin
 
-
 # __________________________________________ Functions _____________________________________________ù
 
 @jit(nopython=True)
@@ -47,7 +46,6 @@ def jmeshGCStoLCS(x_mesh: np.ndarray, y_mesh: np.ndarray, z_mesh: np.ndarray,
     return x_lcs_mesh, y_lcs_mesh, z_lcs_mesh
 
 
-
 # ___________________________________________ Classes ______________________________________________
 
 class RadarGeometry():
@@ -55,8 +53,7 @@ class RadarGeometry():
     describes the rotation, speed and position of the radar with respect to a global reference system
     provides methods to retrieve radar position in time and taget related delays
     """
-
-    def set_rotation(self, looking_angle: float, trajectory_angle: float, squint_angle: float):
+    def set_rotation(self, looking_angle:float, trajectory_angle:float, squint_angle:float):
         """
         sets the rotation of the satellite antenna and creates a reference system with axes accordingly rotated
         this sets also the velocity accordingly to. all angles are in radiant
@@ -147,6 +144,7 @@ class RadarGeometry():
         # change to local
         return np.matmul(self.Bc2s, r)
 
+
     def get_range(self, point_target, t):
         """
         gets relative range between satellite and target in time
@@ -172,6 +170,7 @@ class RadarGeometry():
         projection_on_ground = np.array([B_gx, B_gy, 0])
         return projection_on_ground
 
+
     # Azimuth and range of a point are the azimuth and range coordinates of closest approach between the target
     # and the satellite. The calculations here performed are valid if the trajectory is a straight line with
     # uniform speed
@@ -196,12 +195,25 @@ class RadarGeometry():
 
     def azimuth_range_to_gcs(self, azimuth, range):
         # point of closest approach # todo test
-        P0 = azimuth * self.velocity / self.abs_v + self.S_0
-        point = range * self.z_s + P0
+        v = self.velocity[0:2] / self.abs_v
+        v_ortho = np.array([[0, 1], [-1, 0]]) @ v # orthogonal versor
+        point = azimuth * v + self.S_0[0:2] # azimuth shift
+        point += v_ortho * np.sqrt(self.S_0[2]**2 - range**2) # ground range shift
+        # make it 3 d
+        point = np.row_stack([point, np.array([0])])
         return point
 
     def squinted_azimuth_range_to_gcs(self, azimuth_c, range_c):
         return self.azimuth_range_to_gcs(azimuth_c, range_c)
+
+    def orbital_speed(self):
+        """
+        ideal circular orbit speed approximation
+        :return: the platform estimated speed
+        """
+        # the platform speed  # gravitational mu # earth radius
+        radar_speed = np.sqrt(3.9860044189e14 / (6378e3 + self.S_0[2]))  # m/s
+        return radar_speed
 
     # Bulk processing of coordinates transformations
     # mesh of ground points, one 2 d mesh for each coordinate
@@ -218,13 +230,13 @@ class RadarGeometry():
         y_lcs_mesh = np.zeros_like(y_mesh)
         z_lcs_mesh = np.zeros_like(z_mesh)
         # call the fast core function implementation updating the output
-        x_lcs_mesh, y_lcs_mesh, z_lcs_mesh = jmeshGCStoLCS(   x_mesh,
-                                                              y_mesh,
-                                                              z_mesh,
-                                                              x_lcs_mesh,
-                                                              y_lcs_mesh,
-                                                              z_lcs_mesh,
-                                                              self.S_0,
-                                                              self.Bc2s)
+        x_lcs_mesh, y_lcs_mesh, z_lcs_mesh = jmeshGCStoLCS(x_mesh,
+                                                           y_mesh,
+                                                           z_mesh,
+                                                           x_lcs_mesh,
+                                                           y_lcs_mesh,
+                                                           z_lcs_mesh,
+                                                           self.S_0,
+                                                           self.Bc2s)
         # return the output
         return x_lcs_mesh, y_lcs_mesh, z_lcs_mesh

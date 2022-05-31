@@ -10,7 +10,7 @@
 
 # %%
 import numpy as np
-from utils import meshCart2sph, _meshCart2sph
+from utils import meshCart2sph #_meshCart2sph
 # 1 - First thing we need to create a geometry reference
 from geometryRadar import RadarGeometry
 
@@ -23,7 +23,7 @@ radar_altitude = 500E3  # m
 radar_speed = np.sqrt(3.9860044189e14 / (6378e3 + radar_altitude))  # m/s
 # radar_speed = 7.66E3  # m/s
 # the antenna rotation from nadir i.e. gazing angle ( it is not the incidence angle )
-side_looking_angle_deg = 40  # deg
+side_looking_angle_deg = 30  # deg
 
 # We feed the parameters to the coordinate system model
 # the platform rotation
@@ -238,13 +238,13 @@ ax.set_ylabel('signal weight')
 # ground reflectivity
 sigma = 1
 # Average transmitting power
-powav = 15 # W
+powav = 77 # W
 # Noise figure
-f_noise = 10**(5 / 10) # 5dB
+f_noise = 10**(6.3 / 10) # 5dB
 # Antenna noise temperature
 T_a = 300 # K
 # Noise/range bandwidth
-B_noise = 5e6 # Hz
+B_noise = 300e6 # Hz
 
 # Boltzman constant
 k_boltz = 1.380649E-23 # J/K
@@ -279,6 +279,7 @@ SNR_norm = powav * wave_l**3 * max_gain**2 * sigma * c_light * radarGeo.abs_v**2
          (32 * np.pi**3 * range_**3 * f_noise * k_boltz * T_a * B_noise * sin_eta * w_range_norm)
 
 # and the noise equivalent sigma zero
+NESZ_norm = 1 / SNR_norm
 NESZ_norm = 1 / SNR_norm
 
 
